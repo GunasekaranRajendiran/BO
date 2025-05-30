@@ -1,50 +1,66 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Service Status Form</title>
   <style>
+    * {
+      box-sizing: border-box;
+    }
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f2f2f2;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
       padding: 20px;
+      background-color: #f9f9f9;
     }
     .container {
-      background: #fff;
+      max-width: 700px;
+      margin: auto;
+      background-color: #fff;
       padding: 20px;
       border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      max-width: 600px;
-      margin: auto;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
-    label, select, input, textarea {
-      display: block;
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+    label {
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    input, select, textarea {
       width: 100%;
-      margin-bottom: 15px;
-    }
-    select, input, textarea {
       padding: 10px;
+      margin: 5px 0 15px;
       border: 1px solid #ccc;
       border-radius: 5px;
     }
     button {
-      background: #4CAF50;
+      background-color: #007bff;
       color: white;
-      padding: 10px 20px;
+      padding: 10px 15px;
       border: none;
       border-radius: 5px;
       cursor: pointer;
+      width: 100%;
+      font-size: 16px;
     }
     button:hover {
-      background: #45a049;
+      background-color: #0056b3;
     }
     .output {
-      margin-top: 20px;
       white-space: pre-wrap;
-      background: #eef;
+      background-color: #eef;
       padding: 10px;
+      margin-top: 20px;
       border-radius: 5px;
+    }
+    @media (max-width: 768px) {
+      .container {
+        padding: 15px;
+      }
     }
   </style>
 </head>
@@ -52,69 +68,81 @@
   <div class="container">
     <h2>Service Status Form</h2>
     <label for="status">Select Status</label>
-    <select id="status" onchange="updateFields()">
-      <option value="">--Choose--</option>
-      <option value="Physical Installation Completed">✅ Physical Installation Completed</option>
-      <option value="Customer No Response">✅ Customer No Response</option>
-      <option value="Appointment Postponed">✅ Appointment Postponed</option>
-      <option value="Appointment Cancelled">✅ Appointment Cancelled</option>
-      <option value="Customer Cancelled">✅ Customer Cancelled</option>
-      <option value="Access Issue">✅ Access Issue</option>
-      <!-- Add more statuses as required -->
+    <select id="status" onchange="renderForm()">
+      <option value="">-- Select --</option>
     </select>
-
     <div id="formFields"></div>
-
     <button onclick="copyOutput()">Copy</button>
     <div class="output" id="output"></div>
   </div>
 
   <script>
     const templates = {
-      "Physical Installation Completed": `✅ Physical Installation Completed\nECR:\nOrder No:\nToday’s Appointment Time:\nDescription:`,
-      "Customer No Response": `✅ Customer No Response\nECR:\nOrder No:\nToday’s Appointment Time:\nCustomer Name:\nContact Number:\nDescription:`,
-      "Appointment Postponed": `✅ Appointment Postponed\nECR:\nOrder No:\nToday’s Appointment Time:\nNext Appointment Date:\nNext Appointment Time:\nDescription:`,
-      "Appointment Cancelled": `✅ Appointment Cancelled\nECR:\nOrder No:\nToday’s Appointment Time:\nCustomer Name:\nContact Number:\nDescription:`,
-      "Customer Cancelled": `✅ Customer Cancelled\nECR:\nOrder No:\nToday’s Appointment Time:\nCustomer Name:\nContact Number:\nDescription:`,
-      "Access Issue": `✅ Access Issue\nECR:\nOrder No:\nToday’s Appointment Time:\nLocation / ZSB:\nDescription:`
+      "Physical Installation Completed": ["ECR", "Order No", "Today’s Appointment Time"],
+      "Customer No Response": ["ECR", "Order No", "Today’s Appointment Time", "Customer Name", "Contact Number"],
+      "Appointment Postponed": ["ECR", "Order No", "Today’s Appointment Time", "Next Appointment Date", "Next Appointment Time"],
+      "Appointment Cancelled": ["ECR", "Order No", "Today’s Appointment Time", "Customer Name", "Contact Number"],
+      "Customer Cancelled": ["ECR", "Order No", "Today’s Appointment Time", "Customer Name", "Contact Number"],
+      "Order On-Site / Location in Use": ["ECR", "Customer Name", "Today’s Appointment Time", "KID", "Splitter", "Existing ONT SN", "Existing ONT Status", "Location / ZSB", "Old Customer Status"],
+      "Access Issue": ["ECR", "Order No", "Today’s Appointment Time", "Location / ZSB"],
+      "Building IBC Issue": ["ECR", "Order No", "Today’s Appointment Time", "Location / ZSB", "IBC Status"],
+      "VFQ IBC Issue": ["ECR", "Order No", "Today’s Appointment Time", "Location / ZSB", "IBC Status"],
+      "PON Not Stable": ["ECR", "Order No", "Today’s Appointment Time", "Splitter", "ONT SN", "Provisioning Status"],
+      "STB Email ID Update": ["ECR", "Order No", "Correct Email ID"],
+      "5G SIM Activation": ["ECR", "Order No", "Customer Name", "Nationality", "SIM SN", "ZSB"],
+      "Internal Blockage": ["ECR", "Order No", "KID is Correct", "Location / ZSB", "Splitter is Correct", "Splitter Power (if 1st connection)", "Alternate Route Status", "Trunking Approval Status"],
+      "External Blockage": ["ECR", "Order No", "KID is Correct", "Location / ZSB", "Splitter is Correct", "Splitter Power (if 1st connection)", "Cable Length Required at DP Side"],
+      "Splitter Full": ["ECR", "Order No", "Today’s Appointment Time", "Location / ZSB", "Splitter No", "Splitter Type"],
+      "Wrong KID": ["ECR", "Order No", "Today’s Appointment Time", "Correct Splitter", "Correct KID", "Customer Address", "Service Type"],
+      "Splitter No Power": ["ECR", "Order No", "Today’s Appointment Time", "Splitter No", "Additional Splitter No", "Additional Splitter Power Status"],
+      "Wrong Location/Wrong Address": ["ECR", "Order No", "Today’s Appointment Time", "WFM Location / ZSB", "Customer Correct Location / ZSB", "Customer Coordinates"],
+      "No RFS Location": ["ECR", "Order No", "Today’s Appointment Time", "Customer ZSB", "Customer Coordinates", "Customer KID"],
+      "Splitter Details Not Available in WFM": ["ECR", "Order No", "KID", "Splitter NO"],
+      "Service Activation Failure": ["ECR", "Order No", "Provisioning Status", "WFM Splitter Details Status", "Smart Card Number", "Smart card SNO"],
+      "Wrong Splitter": ["ECR", "Order No", "Today’s Appointment Time", "Correct Splitter", "Correct KID", "Customer Address", "Service Type"],
+      "STB Not Working": ["ECR", "Order No", "Provisioning Status", "MSISDN", "Smart Card Number", "Smart card SNO"],
+      "VLAN ISSUE": ["ECR", "Order No", "Provisioning Status", "IP status", "Smart Card Number", "Smart card SNO", "MSISDN"]
     };
 
-    function updateFields() {
-      const status = document.getElementById("status").value;
-      const fieldsDiv = document.getElementById("formFields");
-      const template = templates[status];
-      fieldsDiv.innerHTML = '';
+    const statusSelect = document.getElementById("status");
+    Object.keys(templates).forEach(key => {
+      const option = document.createElement("option");
+      option.value = key;
+      option.textContent = key;
+      statusSelect.appendChild(option);
+    });
 
-      if (template) {
-        const lines = template.split('\n');
-        lines.forEach(line => {
-          if (line.includes(":")) {
-            const field = line.split(":")[0];
-            fieldsDiv.innerHTML += `<label>${field}</label><input id="${field}" />`;
-          }
+    function renderForm() {
+      const formFields = document.getElementById("formFields");
+      const selected = statusSelect.value;
+      formFields.innerHTML = "";
+      if (templates[selected]) {
+        templates[selected].forEach(field => {
+          formFields.innerHTML += `<label>${field}</label><input id="${field}" />`;
         });
+        formFields.innerHTML += `<label>Description</label><textarea id="Description"></textarea>`;
       }
     }
 
     function copyOutput() {
-      const status = document.getElementById("status").value;
-      if (!status) return;
+      const selected = statusSelect.value;
+      if (!selected) return alert("Please select a status.");
 
-      let output = `✅ ${status}\n`;
-      const fields = document.querySelectorAll("#formFields input");
-      fields.forEach(input => {
-        output += `${input.previousElementSibling.innerText}: ${input.value}\n`;
+      let result = `${selected}\n`;
+      const inputs = document.querySelectorAll("#formFields input, #formFields textarea");
+      inputs.forEach(input => {
+        result += `${input.previousElementSibling.innerText}: ${input.value}\n`;
       });
 
-      document.getElementById("output").innerText = output;
+      document.getElementById("output").innerText = result;
 
-      const temp = document.createElement("textarea");
-      temp.value = output;
-      document.body.appendChild(temp);
-      temp.select();
+      const tempArea = document.createElement("textarea");
+      tempArea.value = result;
+      document.body.appendChild(tempArea);
+      tempArea.select();
       document.execCommand("copy");
-      document.body.removeChild(temp);
-      alert("Copied to clipboard");
+      document.body.removeChild(tempArea);
+      alert("Copied to clipboard!");
     }
   </script>
 </body>
