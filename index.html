@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Service Status Form</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+      padding: 20px;
+    }
+    .container {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      max-width: 600px;
+      margin: auto;
+    }
+    label, select, input, textarea {
+      display: block;
+      width: 100%;
+      margin-bottom: 15px;
+    }
+    select, input, textarea {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    .output {
+      margin-top: 20px;
+      white-space: pre-wrap;
+      background: #eef;
+      padding: 10px;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Service Status Form</h2>
+    <label for="status">Select Status</label>
+    <select id="status" onchange="updateFields()">
+      <option value="">--Choose--</option>
+      <option value="Physical Installation Completed">✅ Physical Installation Completed</option>
+      <option value="Customer No Response">✅ Customer No Response</option>
+      <option value="Appointment Postponed">✅ Appointment Postponed</option>
+      <option value="Appointment Cancelled">✅ Appointment Cancelled</option>
+      <option value="Customer Cancelled">✅ Customer Cancelled</option>
+      <option value="Access Issue">✅ Access Issue</option>
+      <!-- Add more statuses as required -->
+    </select>
+
+    <div id="formFields"></div>
+
+    <button onclick="copyOutput()">Copy</button>
+    <div class="output" id="output"></div>
+  </div>
+
+  <script>
+    const templates = {
+      "Physical Installation Completed": `✅ Physical Installation Completed\nECR:\nOrder No:\nToday’s Appointment Time:\nDescription:`,
+      "Customer No Response": `✅ Customer No Response\nECR:\nOrder No:\nToday’s Appointment Time:\nCustomer Name:\nContact Number:\nDescription:`,
+      "Appointment Postponed": `✅ Appointment Postponed\nECR:\nOrder No:\nToday’s Appointment Time:\nNext Appointment Date:\nNext Appointment Time:\nDescription:`,
+      "Appointment Cancelled": `✅ Appointment Cancelled\nECR:\nOrder No:\nToday’s Appointment Time:\nCustomer Name:\nContact Number:\nDescription:`,
+      "Customer Cancelled": `✅ Customer Cancelled\nECR:\nOrder No:\nToday’s Appointment Time:\nCustomer Name:\nContact Number:\nDescription:`,
+      "Access Issue": `✅ Access Issue\nECR:\nOrder No:\nToday’s Appointment Time:\nLocation / ZSB:\nDescription:`
+    };
+
+    function updateFields() {
+      const status = document.getElementById("status").value;
+      const fieldsDiv = document.getElementById("formFields");
+      const template = templates[status];
+      fieldsDiv.innerHTML = '';
+
+      if (template) {
+        const lines = template.split('\n');
+        lines.forEach(line => {
+          if (line.includes(":")) {
+            const field = line.split(":")[0];
+            fieldsDiv.innerHTML += `<label>${field}</label><input id="${field}" />`;
+          }
+        });
+      }
+    }
+
+    function copyOutput() {
+      const status = document.getElementById("status").value;
+      if (!status) return;
+
+      let output = `✅ ${status}\n`;
+      const fields = document.querySelectorAll("#formFields input");
+      fields.forEach(input => {
+        output += `${input.previousElementSibling.innerText}: ${input.value}\n`;
+      });
+
+      document.getElementById("output").innerText = output;
+
+      const temp = document.createElement("textarea");
+      temp.value = output;
+      document.body.appendChild(temp);
+      temp.select();
+      document.execCommand("copy");
+      document.body.removeChild(temp);
+      alert("Copied to clipboard");
+    }
+  </script>
+</body>
+</html>
