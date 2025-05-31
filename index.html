@@ -1,4 +1,3 @@
-<!-- Place this full HTML code in your file -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -124,12 +123,12 @@ const fieldsData = {
   "Physical Installation Completed": ["ECR", "Order No", "KID", "ZSB", "Today’s Appointment Time", "Description"],
   "Service Activation Failure": ["ECR", "Order No", "Provisioning Status", "WFM Splitter Details Status", "Smart Card Number", "Smart Card SNO", "Description"],
   "Splitter Details Not Available in WFM": ["ECR", "Order No", "KID", "Splitter No", "Description"],
-  "Splitter Full": ["ECR", "Order No", "Today’s Appointment Time", "Location / ZSB", "Splitter No", "Splitter Type", "Description"],
-  "ECAM Full": ["ECR", "Order No", "Today’s Appointment Time", "Location / ZSB", "Splitter No", "Splitter Type","Splitter Port Status". "Description"],
-  "Splitter No Power": ["ECR", "Order No", "Today’s Appointment Time", "Splitter No","Exisiting Connection Status in splitter", "Additional Splitter No", "Additional Splitter Power Status", "Description"],
-  "Splitter Low Power": ["ECR", "Order No", "Today’s Appointment Time", "Splitter No","Exisiting Connection Status in splitter", "Additional Splitter No", "Additional Splitter Power Status", "Description"],
+  "Splitter Full": ["ECR", "Order No", "Today’s Appointment Time", "Location / ZSB", "Splitter No", "Splitter Type","Additional Splitter No", "Additional Splitter Power Status", "Description"],
+  "ECAM Full": ["ECR", "Order No", "Today’s Appointment Time", "Location / ZSB", "Splitter No", "Splitter Type", "Splitter Port Status", "Description"],
+  "Splitter No Power": ["ECR", "Order No", "Today’s Appointment Time", "Splitter No", "Exisiting Connection Status in splitter", "Description"],
+  "Splitter Low Power": ["ECR", "Order No", "Today’s Appointment Time", "Splitter No", "Exisiting Connection Status in splitter", "Additional Splitter No", "Additional Splitter Power Status", "Description"],
   "STB Email ID Update": ["ECR", "Order No", "Correct Email ID", "Description"],
-  "VFQ IBC Issue": ["ECR", "Order No", "Today’s Appointment Time","Splitter Numer", "Location / ZSB", "IBC Status", "Description"],
+  "VFQ IBC Issue": ["ECR", "Order No", "Today’s Appointment Time", "Splitter Numer", "Location / ZSB", "IBC Status", "Description"],
   "Wrong KID": ["ECR", "Order No", "Today’s Appointment Time", "Correct Splitter", "Correct KID", "Customer Address", "Service Type", "Description"],
   "Wrong Location / Wrong Address": ["ECR", "Order No", "Today’s Appointment Time", "WFM Location / ZSB", "Customer Correct Location / ZSB", "Customer Coordinates", "Description"],
   "Wrong Splitter": ["ECR", "Order No", "Today’s Appointment Time", "Correct Splitter", "Correct KID", "Customer Address", "Service Type", "Description"],
@@ -141,7 +140,7 @@ const fieldsData = {
 
 const dismantleFields = {
   "Indoor": ["IDU SNO", "M1 SNO", "M2 SNO", "Description"],
-  "Outdoor": ["ODU SNO","IDU SNO", "M1 SNO", "M2 SNO","Description"]
+  "Outdoor": ["ODU SNO", "IDU SNO", "M1 SNO", "M2 SNO", "Description"]
 };
 
 const statusSelect = document.getElementById("statusType");
@@ -189,9 +188,12 @@ function showStatusForm() {
         inputElement.appendChild(opt);
       });
       inputElement.onchange = function () {
+        const existingNested = document.querySelector(".nested-fields");
+        if (existingNested) formFieldsContainer.removeChild(existingNested);
         const type = this.value;
         const extraFields = dismantleFields[type];
         const extraDiv = document.createElement("div");
+        extraDiv.classList.add("nested-fields");
         extraFields.forEach(extra => {
           const extraId = extra.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
           const label = document.createElement("label");
