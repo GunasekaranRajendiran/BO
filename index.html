@@ -1,149 +1,238 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Service Status Form</title>
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      margin: 0;
-      padding: 20px;
-      background-color: #f9f9f9;
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Status Reporting Form</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f7f9;
+    padding: 20px;
+  }
+  .container {
+    max-width: 900px;
+    margin: auto;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    padding: 25px 30px;
+  }
+  h2 {
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+  label {
+    display: block;
+    margin-top: 12px;
+    font-weight: bold;
+    transition: color 0.3s ease;
+  }
+  input, select, textarea {
+    width: 100%;
+    padding: 10px;
+    margin-top: 6px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: #007BFF;
+    outline: none;
+  }
+  /* Highlight special cases */
+  .special-case label {
+    color: #d9534f; /* Bootstrap danger color */
+  }
+  /* Responsive */
+  @media (max-width: 600px) {
     .container {
-      max-width: 700px;
-      margin: auto;
-      background-color: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      padding: 15px 20px;
     }
-    h2 {
-      text-align: center;
-      color: #333;
+  }
+  /* Animation for form fields */
+  #formFields > div {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.4s forwards;
+  }
+  @keyframes fadeInUp {
+    to {
+      opacity: 1;
+      transform: translateY(0);
     }
-    label {
-      font-weight: bold;
-      margin-top: 10px;
-    }
-    input, select, textarea {
-      width: 100%;
-      padding: 10px;
-      margin: 5px 0 15px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-    button {
-      background-color: #007bff;
-      color: white;
-      padding: 10px 15px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      width: 100%;
-      font-size: 16px;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    .output {
-      white-space: pre-wrap;
-      background-color: #eef;
-      padding: 10px;
-      margin-top: 20px;
-      border-radius: 5px;
-    }
-    @media (max-width: 768px) {
-      .container {
-        padding: 15px;
-      }
-    }
-  </style>
+  }
+  /* Copy button styling */
+  #copyBtn {
+    display: block;
+    width: 100%;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 12px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  #copyBtn:hover {
+    background-color: #0056b3;
+  }
+</style>
 </head>
 <body>
   <div class="container">
-    <h2>Service Status Form</h2>
-    <label for="status">Select Status</label>
-    <select id="status" onchange="renderForm()">
-      <option value="">-- Select --</option>
+    <h2>Status Reporting Form</h2>
+
+    <label for="statusType">Select Status Type:</label>
+    <select id="statusType" onchange="showStatusForm()">
+      <option value="">-- Choose Status Type --</option>
     </select>
-    <div id="formFields"></div>
-    <button onclick="copyOutput()">Copy</button>
-    <div class="output" id="output"></div>
+
+    <form id="statusForm" onsubmit="return false;">
+      <div id="formFields"></div>
+      <button id="copyBtn" type="button" onclick="copyFormData()">Copy</button>
+    </form>
   </div>
 
-  <script>
-    const templates = {
-      "Physical Installation Completed": ["ECR", "Order No", "Today’s Appointment Time"],
-      "Customer No Response": ["ECR", "Order No", "Today’s Appointment Time", "Customer Name", "Contact Number"],
-      "Appointment Postponed": ["ECR", "Order No", "Today’s Appointment Time", "Next Appointment Date", "Next Appointment Time"],
-      "Appointment Cancelled": ["ECR", "Order No", "Today’s Appointment Time", "Customer Name", "Contact Number"],
-      "Customer Cancelled": ["ECR", "Order No", "Today’s Appointment Time", "Customer Name", "Contact Number"],
-      "Order On-Site / Location in Use": ["ECR", "Customer Name", "Today’s Appointment Time", "KID", "Splitter", "Existing ONT SN", "Existing ONT Status", "Location / ZSB", "Old Customer Status"],
-      "Access Issue": ["ECR", "Order No", "Today’s Appointment Time", "Location / ZSB"],
-      "Building IBC Issue": ["ECR", "Order No", "Today’s Appointment Time", "Location / ZSB", "IBC Status"],
-      "VFQ IBC Issue": ["ECR", "Order No", "Today’s Appointment Time", "Location / ZSB", "IBC Status"],
-      "PON Not Stable": ["ECR", "Order No", "Today’s Appointment Time", "Splitter", "ONT SN", "Provisioning Status"],
-      "STB Email ID Update": ["ECR", "Order No", "Correct Email ID"],
-      "5G SIM Activation": ["ECR", "Order No", "Customer Name", "Nationality", "SIM SN", "ZSB"],
-      "Internal Blockage": ["ECR", "Order No", "KID is Correct", "Location / ZSB", "Splitter is Correct", "Splitter Power (if 1st connection)", "Alternate Route Status", "Trunking Approval Status"],
-      "External Blockage": ["ECR", "Order No", "KID is Correct", "Location / ZSB", "Splitter is Correct", "Splitter Power (if 1st connection)", "Cable Length Required at DP Side"],
-      "Splitter Full": ["ECR", "Order No", "Today’s Appointment Time", "Location / ZSB", "Splitter No", "Splitter Type"],
-      "Wrong KID": ["ECR", "Order No", "Today’s Appointment Time", "Correct Splitter", "Correct KID", "Customer Address", "Service Type"],
-      "Splitter No Power": ["ECR", "Order No", "Today’s Appointment Time", "Splitter No", "Additional Splitter No", "Additional Splitter Power Status"],
-      "Wrong Location/Wrong Address": ["ECR", "Order No", "Today’s Appointment Time", "WFM Location / ZSB", "Customer Correct Location / ZSB", "Customer Coordinates"],
-      "No RFS Location": ["ECR", "Order No", "Today’s Appointment Time", "Customer ZSB", "Customer Coordinates", "Customer KID"],
-      "Splitter Details Not Available in WFM": ["ECR", "Order No", "KID", "Splitter NO"],
-      "Service Activation Failure": ["ECR", "Order No", "Provisioning Status", "WFM Splitter Details Status", "Smart Card Number", "Smart card SNO"],
-      "Wrong Splitter": ["ECR", "Order No", "Today’s Appointment Time", "Correct Splitter", "Correct KID", "Customer Address", "Service Type"],
-      "STB Not Working": ["ECR", "Order No", "Provisioning Status", "MSISDN", "Smart Card Number", "Smart card SNO"],
-      "VLAN ISSUE": ["ECR", "Order No", "Provisioning Status", "IP status", "Smart Card Number", "Smart card SNO", "MSISDN"]
-    };
+<script>
+  const timeOptions = [
+    "8AM", "9AM", "10AM", "11AM", "12PM", "2PM", "3:30PM", "4PM", "5PM", "7PM"
+  ];
 
-    const statusSelect = document.getElementById("status");
-    Object.keys(templates).forEach(key => {
-      const option = document.createElement("option");
-      option.value = key;
-      option.textContent = key;
-      statusSelect.appendChild(option);
+  const specialCases = [
+    "Splitter Full",
+    "Wrong KID",
+    "Wrong Splitter",
+    "Splitter No Power"
+  ];
+
+  const fieldsData = {
+    "Access Issue": ["ECR", "Order No", "Today’s Appointment Time", "Location / ZSB", "Description"],
+    "Appointment Cancelled": ["ECR", "Order No", "Today’s Appointment Time", "Customer Name", "Contact Number", "Description"],
+    "Appointment Postponed": ["ECR", "Order No", "Today’s Appointment Time", "Next Appointment Date", "Next Appointment Time", "Description"],
+    "Building IBC Issue": ["ECR", "Order No", "Today’s Appointment Time", "Location / ZSB", "IBC Status", "Description"],
+    "Customer Cancelled": ["ECR", "Order No", "Today’s Appointment Time", "Customer Name", "Contact Number", "Description"],
+    "Customer No Response": ["ECR", "Order No", "Today’s Appointment Time", "Customer Name", "Contact Number", "Description"],
+    "External Blockage": ["ECR", "Order No", "KID is Correct", "Location / ZSB", "Splitter is Correct", "Splitter Power (if 1st connection)", "Cable Length Required at DP Side", "Description"],
+    "Internal Blockage": ["ECR", "Order No", "KID is Correct", "Location / ZSB", "Splitter is Correct", "Splitter Power (if 1st connection)", "Alternate Route Status", "Trunking Approval Status", "Description"],
+    "Location in Use": ["ECR", "Customer Name", "Today’s Appointment Time", "KID", "Splitter", "Existing ONT SN", "Existing ONT Status", "Location / ZSB", "Old Customer Status", "Description"],
+    "No RFS Location": ["ECR", "Order No", "Today’s Appointment Time", "Customer ZSB", "Customer Coordinates", "Customer KID", "Description"],
+    "Order On-Site": ["ECR", "Customer Name", "KID", "Splitter", "Location / ZSB", "Description"],
+    "PON Not Stable": ["ECR", "Order No", "Today’s Appointment Time", "Splitter", "ONT SN", "Provisioning Status", "Description"],
+    "Physical Installation Completed": ["ECR", "Order No", "KID", "ZSB", "Today’s Appointment Time", "Description"],
+    "Service Activation Failure": ["ECR", "Order No", "Provisioning Status", "WFM Splitter Details Status", "Smart Card Number", "Smart Card SNO", "Description"],
+    "Splitter Details Not Available in WFM": ["ECR", "Order No", "KID", "Splitter No", "Description"],
+    "Splitter Full": ["ECR", "Order No", "Today’s Appointment Time", "Location / ZSB", "Splitter No", "Splitter Type", "Description"],
+    "Splitter No Power": ["ECR", "Order No", "Today’s Appointment Time", "Splitter No", "Additional Splitter No", "Additional Splitter Power Status", "Description"],
+    "STB Email ID Update": ["ECR", "Order No", "Correct Email ID", "Description"],
+    "VFQ IBC Issue": ["ECR", "Order No", "Today’s Appointment Time", "Location / ZSB", "IBC Status", "Description"],
+    "Wrong KID": ["ECR", "Order No", "Today’s Appointment Time", "Correct Splitter", "Correct KID", "Customer Address", "Service Type", "Description"],
+    "Wrong Location / Wrong Address": ["ECR", "Order No", "Today’s Appointment Time", "WFM Location / ZSB", "Customer Correct Location / ZSB", "Customer Coordinates", "Description"],
+    "Wrong Splitter": ["ECR", "Order No", "Today’s Appointment Time", "Correct Splitter", "Correct KID", "Customer Address", "Service Type", "Description"],
+    "5G SIM Activation": ["ECR", "Order No", "Customer Name", "Nationality", "SIM SN", "ZSB", "Description"]
+  };
+
+  const statusSelect = document.getElementById("statusType");
+  const formFieldsContainer = document.getElementById("formFields");
+
+  Object.keys(fieldsData).forEach(status => {
+    const option = document.createElement("option");
+    option.value = status;
+    option.textContent = status;
+    statusSelect.appendChild(option);
+  });
+
+  function showStatusForm() {
+    const selectedStatus = statusSelect.value;
+    formFieldsContainer.innerHTML = "";
+    if (!selectedStatus) return;
+
+    const fields = fieldsData[selectedStatus];
+    const isSpecial = specialCases.includes(selectedStatus);
+
+    const wrapper = document.createElement("div");
+    if (isSpecial) wrapper.classList.add("special-case");
+
+    fields.forEach((field, index) => {
+      const fieldId = field.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+      const fieldWrapper = document.createElement("div");
+      fieldWrapper.style.animationDelay = `${index * 0.1}s`;
+
+      const label = document.createElement("label");
+      label.setAttribute("for", fieldId);
+      label.textContent = field + ":";
+
+      let inputElement;
+      if (field.toLowerCase().includes("date")) {
+        inputElement = document.createElement("input");
+        inputElement.type = "date";
+      } else if (field.toLowerCase().includes("time")) {
+        inputElement = document.createElement("select");
+        const defaultOpt = document.createElement("option");
+        defaultOpt.value = "";
+        defaultOpt.textContent = "-- Select Time --";
+        defaultOpt.disabled = true;
+        defaultOpt.selected = true;
+        inputElement.appendChild(defaultOpt);
+        timeOptions.forEach(time => {
+          const opt = document.createElement("option");
+          opt.value = time;
+          opt.textContent = time;
+          inputElement.appendChild(opt);
+        });
+      } else if (field.toLowerCase().includes("description")) {
+        inputElement = document.createElement("textarea");
+        inputElement.rows = 3;
+      } else if (field.toLowerCase().includes("email")) {
+        inputElement = document.createElement("input");
+        inputElement.type = "email";
+      } else if (field.toLowerCase().includes("contact number")) {
+        inputElement = document.createElement("input");
+        inputElement.type = "tel";
+        inputElement.pattern = "\\d{10,15}";
+        inputElement.title = "Enter valid contact number";
+      } else {
+        inputElement = document.createElement("input");
+        inputElement.type = "text";
+      }
+
+      inputElement.id = fieldId;
+      inputElement.name = fieldId;
+      // Remove required attribute so fields are optional
+      // inputElement.required = true; -- REMOVED
+
+      fieldWrapper.appendChild(label);
+      fieldWrapper.appendChild(inputElement);
+      wrapper.appendChild(fieldWrapper);
     });
 
-    function renderForm() {
-      const formFields = document.getElementById("formFields");
-      const selected = statusSelect.value;
-      formFields.innerHTML = "";
-      if (templates[selected]) {
-        templates[selected].forEach(field => {
-          formFields.innerHTML += `<label>${field}</label><input id="${field}" />`;
-        });
-        formFields.innerHTML += `<label>Description</label><textarea id="Description"></textarea>`;
-      }
+    formFieldsContainer.appendChild(wrapper);
+  }
+
+  function copyFormData() {
+    const form = document.getElementById("statusForm");
+    const formData = new FormData(form);
+    let output = "";
+
+    for (let [key, value] of formData.entries()) {
+      let formattedKey = key.replace(/([a-z])([A-Z])/g, '$1 $2')
+                            .replace(/([A-Z]+)/g, ' $1')
+                            .replace(/_/g, ' ')
+                            .toLowerCase()
+                            .replace(/\b\w/g, c => c.toUpperCase())
+                            .trim();
+      output += `${formattedKey}: ${value}\n`;
     }
 
-    function copyOutput() {
-      const selected = statusSelect.value;
-      if (!selected) return alert("Please select a status.");
-
-      let result = `${selected}\n`;
-      const inputs = document.querySelectorAll("#formFields input, #formFields textarea");
-      inputs.forEach(input => {
-        result += `${input.previousElementSibling.innerText}: ${input.value}\n`;
-      });
-
-      document.getElementById("output").innerText = result;
-
-      const tempArea = document.createElement("textarea");
-      tempArea.value = result;
-      document.body.appendChild(tempArea);
-      tempArea.select();
-      document.execCommand("copy");
-      document.body.removeChild(tempArea);
-      alert("Copied to clipboard!");
-    }
-  </script>
+    navigator.clipboard.writeText(output)
+      .then(() => alert("Form data copied to clipboard!"))
+      .catch(() => alert("Failed to copy. Please copy manually."));
+  }
+</script>
 </body>
 </html>
