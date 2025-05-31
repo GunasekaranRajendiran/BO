@@ -254,18 +254,23 @@ function showStatusForm() {
 }
 
 function copyFormData() {
+  const selectedStatus = statusSelect.value;
+  if (!selectedStatus) {
+    alert("Please select a status type.");
+    return;
+  }
+  
   const form = document.getElementById("statusForm");
   const formData = new FormData(form);
-  let output = "";
-  for (let [key, value] of formData.entries()) {
-    let formattedKey = key.replace(/([a-z])([A-Z])/g, '$1 $2')
-                          .replace(/([A-Z]+)/g, ' $1')
-                          .replace(/_/g, ' ')
-                          .toLowerCase()
-                          .replace(/\b\w/g, c => c.toUpperCase())
-                          .trim();
-    output += `${formattedKey}: ${value}\n`;
+  
+  let output = selectedStatus + "\n";  // Heading as first line, no extra blank line
+  
+  for (let field of fieldsData[selectedStatus]) {
+    const keyId = field.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+    let value = formData.get(keyId) || "";
+    output += `${field}: ${value}\n`;
   }
+  
   navigator.clipboard.writeText(output)
     .then(() => alert("Form data copied to clipboard!"))
     .catch(() => alert("Failed to copy. Please copy manually."));
