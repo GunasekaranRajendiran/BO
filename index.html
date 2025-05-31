@@ -9,7 +9,9 @@
     font-family: Arial, sans-serif;
     background-color: #f4f7f9;
     padding: 20px;
+    margin: 0;
   }
+
   .container {
     max-width: 900px;
     margin: auto;
@@ -18,54 +20,57 @@
     box-shadow: 0 0 15px rgba(0,0,0,0.1);
     padding: 25px 30px;
   }
+
   h2 {
     text-align: center;
     font-weight: bold;
     margin-bottom: 20px;
+    font-size: 1.5rem;
   }
+
   label {
     display: block;
     margin-top: 12px;
     font-weight: bold;
+    font-size: 1rem;
     transition: color 0.3s ease;
   }
+
   input, select, textarea {
     width: 100%;
+    max-width: 100%;
     padding: 10px;
     margin-top: 6px;
     margin-bottom: 15px;
     border: 1px solid #ccc;
     border-radius: 6px;
     font-size: 1rem;
+    box-sizing: border-box;
     transition: border-color 0.3s ease;
   }
+
   input:focus, select:focus, textarea:focus {
     border-color: #007BFF;
     outline: none;
   }
-  /* Highlight special cases */
+
   .special-case label {
-    color: #d9534f; /* Bootstrap danger color */
+    color: #d9534f;
   }
-  /* Responsive */
-  @media (max-width: 600px) {
-    .container {
-      padding: 15px 20px;
-    }
-  }
-  /* Animation for form fields */
+
   #formFields > div {
     opacity: 0;
     transform: translateY(20px);
     animation: fadeInUp 0.4s forwards;
   }
+
   @keyframes fadeInUp {
     to {
       opacity: 1;
       transform: translateY(0);
     }
   }
-  /* Copy button styling */
+
   #copyBtn {
     display: block;
     width: 100%;
@@ -79,8 +84,52 @@
     cursor: pointer;
     margin-top: 10px;
   }
+
   #copyBtn:hover {
     background-color: #0056b3;
+  }
+
+  /* Mobile-friendly layout */
+  @media (max-width: 768px) {
+    .container {
+      padding: 20px;
+    }
+
+    label {
+      font-size: 0.95rem;
+    }
+
+    input, select, textarea {
+      font-size: 0.95rem;
+      padding: 8px;
+    }
+
+    h2 {
+      font-size: 1.3rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    body {
+      padding: 10px;
+    }
+
+    .container {
+      padding: 15px;
+    }
+
+    label {
+      font-size: 0.9rem;
+    }
+
+    input, select, textarea {
+      font-size: 0.9rem;
+    }
+
+    #copyBtn {
+      font-size: 1rem;
+      padding: 10px;
+    }
   }
 </style>
 </head>
@@ -100,16 +149,8 @@
   </div>
 
 <script>
-  const timeOptions = [
-    "8AM", "9AM", "10AM", "11AM", "12PM", "2PM", "3:30PM", "4PM", "5PM", "7PM"
-  ];
-
-  const specialCases = [
-    "Splitter Full",
-    "Wrong KID",
-    "Wrong Splitter",
-    "Splitter No Power"
-  ];
+  const timeOptions = ["8AM", "9AM", "10AM", "11AM", "12PM", "2PM", "3:30PM", "4PM", "5PM", "7PM"];
+  const specialCases = ["Splitter Full", "Wrong KID", "Wrong Splitter", "Splitter No Power"];
 
   const fieldsData = {
     "Access Issue": ["ECR", "Order No", "Today’s Appointment Time", "Location / ZSB", "Description"],
@@ -203,8 +244,6 @@
 
       inputElement.id = fieldId;
       inputElement.name = fieldId;
-      // Remove required attribute so fields are optional
-      // inputElement.required = true; -- REMOVED
 
       fieldWrapper.appendChild(label);
       fieldWrapper.appendChild(inputElement);
